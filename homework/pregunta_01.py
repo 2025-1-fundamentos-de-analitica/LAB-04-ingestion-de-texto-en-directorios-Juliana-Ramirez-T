@@ -1,3 +1,7 @@
+import os
+import zipfile
+import pandas as pd
+
 # pylint: disable=import-outside-toplevel
 # pylint: disable=line-too-long
 # flake8: noqa
@@ -5,9 +9,53 @@
 Escriba el codigo que ejecute la accion solicitada en cada pregunta.
 """
 
-
 def pregunta_01():
-    """
+    #Crear las rutasss
+    zip_path = "files/input.zip"
+    #creara la carpeta "input" en la raiz del repositorio
+    repo_dir = "files/input_tmp"
+    output_dir = "files/output"
+
+    #Crear carpetas que no existen
+    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(repo_dir, exist_ok=True)
+
+    #Se descomprime el zip
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(repo_dir)
+
+    #ubica raiz
+    for root, dirs, files in os.walk(repo_dir):
+        if 'train' in dirs and 'test' in dirs:
+            data_root = root
+            break
+    else:
+        print("Error. No se encontró la info.")
+        return
+
+    
+    def proceso(x):
+        registro = []
+        base_path = os.path.join(data_root, x)
+        for i in os.listdir(base_path):
+            carp = os.path.join(base_path, i)
+            for j in os.listdir(carp):
+                ruta = os.path.join(carp, j)
+                with open(ruta, encoding='utf-8') as f:
+                    texto = f.read().strip()
+                    registro.append({'phrase': texto, 'target': i}) 
+        return pd.DataFrame(registro)
+
+    df_train = proceso("train")
+    df_test = proceso("test")
+
+    #Guardar resultados
+    df_train.to_csv(os.path.join(output_dir, "train_dataset.csv"), index=False)
+    df_test.to_csv(os.path.join(output_dir, "test_dataset.csv"), index=False)
+
+
+
+    """"
     La información requerida para este laboratio esta almacenada en el
     archivo "files/input.zip" ubicado en la carpeta raíz.
     Descomprima este archivo.
